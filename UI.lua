@@ -1,9 +1,3 @@
--- ╔══════════════════════════════════════════╗
--- ║         NOVA UI LIBRARY - Enhanced       ║
--- ║   Smooth animations, mobile support,     ║
--- ║   more features, refined aesthetics      ║
--- ╚══════════════════════════════════════════╝
-
 local Player = game.Players.LocalPlayer
 local Mouse = Player:GetMouse()
 
