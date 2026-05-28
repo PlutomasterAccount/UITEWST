@@ -387,15 +387,15 @@ function UILibrary.Load(GUITitle, options)
 	TitleAccentLine.ZIndex = Level + 1
 	TitleAccentLine.Parent = TitleBar
 
-	local TitleLabel = Instance.new("TextLabel")
-	TitleLabel.Text = GUITitle
-	TitleLabel.Font = Config.Font
-	TitleLabel.TextColor3 = Config.TextPrimary
-	TitleLabel.TextSize = 14
-	TitleLabel.BackgroundTransparency = 1
-	TitleLabel.Size = UDim2.new(1, -100, 1, 0)
-	TitleLabel.Position = UDim2.new(0, 45, 0, 0)
-	TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Text = GUITitle
+    TitleLabel.Font = Config.Font
+    TitleLabel.TextColor3 = Config.TextPrimary
+    TitleLabel.TextSize = 14
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Size = UDim2.new(1, 0, 1, 0)
+    TitleLabel.Position = UDim2.new(0, 0, 0, 0)
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Center
 	TitleLabel.ZIndex = Level + 2
 	TitleLabel.Parent = TitleBar
 
