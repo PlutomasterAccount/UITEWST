@@ -7,16 +7,12 @@ local CoreGuiService = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
 local TextService = game:GetService("TextService")
 
--- ─────────────────────────────────────────
--- CONFIG
--- ─────────────────────────────────────────
 local Config = {
 	TweenTime       = 0.18,
 	FastTweenTime   = 0.10,
 	SlowTweenTime   = 0.30,
 	SpringTweenTime = 0.35,
 
-	-- Colours
 	BG              = Color3.fromRGB(18, 18, 22),
 	BG2             = Color3.fromRGB(24, 24, 30),
 	BG3             = Color3.fromRGB(32, 32, 40),
@@ -32,7 +28,6 @@ local Config = {
 	Warning         = Color3.fromRGB(255, 190, 60),
 	Border          = Color3.fromRGB(50, 50, 68),
 
-	-- Dimensions
 	WindowW         = 560,
 	WindowH         = 340,
 	MenuBarW        = 110,
@@ -40,20 +35,15 @@ local Config = {
 	ElementH        = 24,
 	ElementPad      = 4,
 
-	-- Icon atlas
 	IconLib1        = "rbxassetid://3926305904",
 	IconLib2        = "rbxassetid://3926307971",
 	DropShadowID    = "rbxassetid://297774371",
 
-	-- Font
 	Font            = Enum.Font.GothamBold,
 	FontLight       = Enum.Font.Gotham,
 	FontMono        = Enum.Font.Code,
 }
 
--- ─────────────────────────────────────────
--- TWEEN HELPERS
--- ─────────────────────────────────────────
 local function MakeTweenInfo(t, style, dir, rep, rev, delay)
 	return TweenInfo.new(
 		t or Config.TweenTime,
@@ -77,24 +67,6 @@ local function Tween(obj, props, info)
 	return t
 end
 
-local function TweenSeq(obj, steps)
-	-- steps = {{props, info, delay?}, ...}
-	local totalDelay = 0
-	for _, step in ipairs(steps) do
-		local props, info, delay = step[1], step[2], step[3] or 0
-		totalDelay += delay
-		task.delay(totalDelay, function()
-			Tween(obj, props, info)
-		end)
-		if info then
-			totalDelay += info.Time
-		end
-	end
-end
-
--- ─────────────────────────────────────────
--- UTILITY
--- ─────────────────────────────────────────
 local Level = 1
 
 local function NextLevel()
@@ -102,24 +74,6 @@ local function NextLevel()
 	return Level
 end
 
-local function GetXY(gui)
-	local touch = UserInputService:GetMouseLocation()
-	local X = touch.X - gui.AbsolutePosition.X
-	local Y = touch.Y - gui.AbsolutePosition.Y
-	local maxX = gui.AbsoluteSize.X
-	local maxY = gui.AbsoluteSize.Y
-	X = math.clamp(X, 0, maxX)
-	Y = math.clamp(Y, 0, maxY)
-	return X, Y, X / maxX, Y / maxY
-end
-
-local function IsMobile()
-	return UserInputService.TouchEnabled and not UserInputService.MouseEnabled
-end
-
--- ─────────────────────────────────────────
--- UI PRIMITIVES
--- ─────────────────────────────────────────
 local function NewFrame(name, parent)
 	local f = Instance.new("Frame")
 	f.Name = name or "Frame"
@@ -233,9 +187,6 @@ local function NewStroke(color, thickness, parent, transparency)
 	return s
 end
 
--- ─────────────────────────────────────────
--- ICON HELPERS
--- ─────────────────────────────────────────
 local function IconLabel(lib, ox, oy, sx, sy, size, parent)
 	local img = Instance.new("ImageLabel")
 	img.BackgroundTransparency = 1
@@ -248,19 +199,6 @@ local function IconLabel(lib, ox, oy, sx, sy, size, parent)
 	return img
 end
 
-local function IconButton(lib, ox, oy, sx, sy, size, parent)
-	local img = Instance.new("ImageButton")
-	img.BackgroundTransparency = 1
-	img.Image = lib
-	img.ImageRectOffset = Vector2.new(ox, oy)
-	img.ImageRectSize = Vector2.new(sx, sy)
-	img.Size = UDim2.new(0, size or 14, 0, size or 14)
-	img.ZIndex = Level
-	img.Parent = parent
-	return img
-end
-
--- ripple effect on button click
 local function Ripple(parent)
 	local rip = Instance.new("Frame")
 	rip.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -279,7 +217,6 @@ local function Ripple(parent)
 	end)
 end
 
--- hover glow pulse
 local function AddHoverGlow(btn, bg, hoverColor, normalColor)
 	btn.MouseEnter:Connect(function()
 		Tween(bg, {ImageColor3 = hoverColor}, TI_Fast)
@@ -289,9 +226,6 @@ local function AddHoverGlow(btn, bg, hoverColor, normalColor)
 	end)
 end
 
--- ─────────────────────────────────────────
--- NOTIFICATION SYSTEM
--- ─────────────────────────────────────────
 local NotifParent = nil
 
 local function NotifySetup(screenGui)
@@ -365,7 +299,6 @@ local function Notify(title, message, notifType, duration)
 	msgLbl.ZIndex = 102
 	msgLbl.Parent = bg
 
-	-- progress bar
 	local progress = Instance.new("Frame")
 	progress.Size = UDim2.new(1, -12, 0, 2)
 	progress.Position = UDim2.new(0, 6, 1, -4)
@@ -375,11 +308,9 @@ local function Notify(title, message, notifType, duration)
 	progress.ZIndex = 102
 	progress.Parent = bg
 
-	-- animate in
 	bg.Position = UDim2.new(1, 20, 0, 0)
 	Tween(bg, {Position = UDim2.new(0, 0, 0, 0)}, TI_Back)
 
-	-- shrink progress bar over duration
 	Tween(progress, {Size = UDim2.new(0, 0, 0, 2)}, MakeTweenInfo(duration, Enum.EasingStyle.Linear))
 
 	task.delay(duration, function()
@@ -390,56 +321,6 @@ local function Notify(title, message, notifType, duration)
 	end)
 end
 
--- ─────────────────────────────────────────
--- TOOLTIP
--- ─────────────────────────────────────────
-local function AddTooltip(target, tipText, screenGui)
-	if not tipText or tipText == "" then return end
-
-	local tip = Instance.new("Frame")
-	tip.BackgroundColor3 = Config.BG4
-	tip.BorderSizePixel = 0
-	tip.Size = UDim2.new(0, 0, 0, 22)
-	tip.ZIndex = 200
-	tip.Visible = false
-	NewCorner(6, tip)
-	NewStroke(Config.Border, 1, tip)
-	tip.Parent = screenGui
-
-	local tipLbl = Instance.new("TextLabel")
-	tipLbl.Text = tipText
-	tipLbl.Font = Config.FontLight
-	tipLbl.TextColor3 = Config.TextPrimary
-	tipLbl.TextSize = 11
-	tipLbl.BackgroundTransparency = 1
-	tipLbl.Size = UDim2.new(1, -10, 1, 0)
-	tipLbl.Position = UDim2.new(0, 5, 0, 0)
-	tipLbl.ZIndex = 201
-	tipLbl.Parent = tip
-
-	local textSize = TextService:GetTextSize(tipText, 11, Config.FontLight, Vector2.new(1000, 22))
-	tip.Size = UDim2.new(0, textSize.X + 14, 0, 22)
-
-	local conn1, conn2
-	conn1 = target.MouseEnter:Connect(function()
-		tip.Visible = true
-		tip.BackgroundTransparency = 1
-		Tween(tip, {BackgroundTransparency = 0}, TI_Fast)
-	end)
-	conn2 = target.MouseLeave:Connect(function()
-		tip.Visible = false
-	end)
-
-	RunService.RenderStepped:Connect(function()
-		if tip.Visible then
-			tip.Position = UDim2.new(0, Mouse.X + 12, 0, Mouse.Y - 28)
-		end
-	end)
-end
-
--- ─────────────────────────────────────────
--- MAIN LIBRARY
--- ─────────────────────────────────────────
 local UILibrary = {}
 
 function UILibrary.Load(GUITitle, options)
@@ -448,13 +329,11 @@ function UILibrary.Load(GUITitle, options)
 
 	local TargetedParent = RunService:IsStudio() and Player:WaitForChild("PlayerGui") or CoreGuiService
 
-	-- destroy old instance
 	local old = TargetedParent:FindFirstChild(GUITitle)
 	if old then old:Destroy() end
 
 	Level = 1
 
-	-- Screen GUI
 	local ScreenGui = Instance.new("ScreenGui")
 	ScreenGui.Name = GUITitle
 	ScreenGui.ResetOnSpawn = false
@@ -463,14 +342,12 @@ function UILibrary.Load(GUITitle, options)
 
 	NotifySetup(ScreenGui)
 
-	-- ── Outer shadow / container
 	Level = 1
 	local ContainerFrame = NewFrame("ContainerFrame", ScreenGui)
 	ContainerFrame.Size = UDim2.new(0, Config.WindowW, 0, Config.WindowH)
 	ContainerFrame.Position = UDim2.new(0.5, -Config.WindowW/2, 0.5, -Config.WindowH/2)
 	ContainerFrame.BackgroundTransparency = 1
 
-	-- Drop shadow using multiple layered frames for a soft glow
 	for i = 5, 1, -1 do
 		local shadow = Instance.new("Frame")
 		shadow.Size = UDim2.new(1, i * 8, 1, i * 8)
@@ -485,7 +362,6 @@ function UILibrary.Load(GUITitle, options)
 
 	Level = 2
 
-	-- ── Main window
 	local MainFrame = Instance.new("Frame")
 	MainFrame.Name = "MainFrame"
 	MainFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -497,7 +373,6 @@ function UILibrary.Load(GUITitle, options)
 	MainFrame.ClipsDescendants = true
 	MainFrame.Parent = ContainerFrame
 
-	-- subtle noise/grid overlay for texture
 	local overlay = Instance.new("Frame")
 	overlay.Size = UDim2.new(1, 0, 1, 0)
 	overlay.BackgroundTransparency = 0.97
@@ -508,7 +383,6 @@ function UILibrary.Load(GUITitle, options)
 
 	Level = 3
 
-	-- ── Title bar
 	local TitleBar = Instance.new("Frame")
 	TitleBar.Name = "TitleBar"
 	TitleBar.Size = UDim2.new(1, 0, 0, Config.TitleBarH)
@@ -517,7 +391,6 @@ function UILibrary.Load(GUITitle, options)
 	TitleBar.ZIndex = Level
 	TitleBar.Parent = MainFrame
 
-	-- accent line under title bar
 	local TitleAccentLine = Instance.new("Frame")
 	TitleAccentLine.Size = UDim2.new(1, 0, 0, 1)
 	TitleAccentLine.Position = UDim2.new(0, 0, 1, -1)
@@ -527,7 +400,6 @@ function UILibrary.Load(GUITitle, options)
 	TitleAccentLine.ZIndex = Level + 1
 	TitleAccentLine.Parent = TitleBar
 
-	-- dot indicators (macOS style)
 	local dotColors = {Color3.fromRGB(255, 90, 90), Color3.fromRGB(255, 190, 60), Color3.fromRGB(72, 210, 100)}
 	local dotSize = 9
 	for i, dc in ipairs(dotColors) do
@@ -541,7 +413,6 @@ function UILibrary.Load(GUITitle, options)
 		dot.Parent = TitleBar
 	end
 
-	-- title text
 	local TitleLabel = Instance.new("TextLabel")
 	TitleLabel.Text = GUITitle
 	TitleLabel.Font = Config.Font
@@ -553,7 +424,6 @@ function UILibrary.Load(GUITitle, options)
 	TitleLabel.ZIndex = Level + 2
 	TitleLabel.Parent = TitleBar
 
-	-- minimise / close buttons
 	local CloseBtn = Instance.new("TextButton")
 	CloseBtn.Text = "✕"
 	CloseBtn.Font = Config.Font
@@ -578,7 +448,6 @@ function UILibrary.Load(GUITitle, options)
 	MinBtn.AutoButtonColor = false
 	MinBtn.Parent = TitleBar
 
-	-- hover effects on buttons
 	CloseBtn.MouseEnter:Connect(function()
 		Tween(CloseBtn, {TextColor3 = Config.Danger}, TI_Fast)
 	end)
@@ -592,7 +461,6 @@ function UILibrary.Load(GUITitle, options)
 		Tween(MinBtn, {TextColor3 = Config.TextSecondary}, TI_Fast)
 	end)
 
-	-- minimise toggle
 	local minimised = false
 	local fullHeight = Config.WindowH
 
@@ -607,7 +475,6 @@ function UILibrary.Load(GUITitle, options)
 
 	CloseBtn.MouseButton1Click:Connect(function()
 		Tween(MainFrame, {BackgroundTransparency = 1}, TI_Normal)
-		-- fade shadows
 		for _, ch in ipairs(ContainerFrame:GetChildren()) do
 			if ch:IsA("Frame") and ch.ZIndex == 0 then
 				Tween(ch, {BackgroundTransparency = 1}, TI_Normal)
@@ -618,7 +485,6 @@ function UILibrary.Load(GUITitle, options)
 		end)
 	end)
 
-	-- ── Dragging (mouse + touch)
 	local dragging = false
 	local dragStart, startPos
 
@@ -664,12 +530,10 @@ function UILibrary.Load(GUITitle, options)
 
 	Level = 4
 
-	-- ── Body layout
 	local BodyFrame = NewFrame("Body", MainFrame)
 	BodyFrame.Size = UDim2.new(1, 0, 1, -Config.TitleBarH)
 	BodyFrame.Position = UDim2.new(0, 0, 0, Config.TitleBarH)
 
-	-- ── Sidebar (tab menu)
 	local Sidebar = Instance.new("Frame")
 	Sidebar.Name = "Sidebar"
 	Sidebar.Size = UDim2.new(0, Config.MenuBarW, 1, 0)
@@ -678,7 +542,6 @@ function UILibrary.Load(GUITitle, options)
 	Sidebar.ZIndex = Level
 	Sidebar.Parent = BodyFrame
 
-	-- sidebar accent border right
 	local SidebarBorder = Instance.new("Frame")
 	SidebarBorder.Size = UDim2.new(0, 1, 1, 0)
 	SidebarBorder.Position = UDim2.new(1, -1, 0, 0)
@@ -699,14 +562,12 @@ function UILibrary.Load(GUITitle, options)
 		SidebarScroll.CanvasSize = UDim2.new(0, 0, 0, h)
 	end)
 
-	-- ── Content area
 	local ContentArea = NewFrame("ContentArea", BodyFrame)
 	ContentArea.Size = UDim2.new(1, -Config.MenuBarW, 1, 0)
 	ContentArea.Position = UDim2.new(0, Config.MenuBarW, 0, 0)
 
 	Level = 5
 
-	-- ── Page indicator (accent bar that slides)
 	local PageIndicator = Instance.new("Frame")
 	PageIndicator.Size = UDim2.new(0, 3, 0, 20)
 	PageIndicator.Position = UDim2.new(0, 0, 0, 6)
@@ -716,13 +577,11 @@ function UILibrary.Load(GUITitle, options)
 	NewCorner(4, PageIndicator)
 	PageIndicator.Parent = Sidebar
 
-	-- ── Tab system
 	local TabCount = 0
 	local ActivePage = nil
 
 	local TabLibrary = {}
 
-	-- expose notify globally for pages to use
 	TabLibrary.Notify = function(title, msg, t, dur)
 		Notify(title, msg, t, dur)
 	end
@@ -731,7 +590,6 @@ function UILibrary.Load(GUITitle, options)
 		local pageIndex = TabCount
 		TabCount += 1
 
-		-- ── Tab button in sidebar
 		local TabBtn = Instance.new("TextButton")
 		TabBtn.Name = "Tab_"..PageTitle
 		TabBtn.Text = ""
@@ -757,7 +615,6 @@ function UILibrary.Load(GUITitle, options)
 		TabLbl.ZIndex = Level + 1
 		TabLbl.Parent = TabBtn
 
-		-- hover
 		TabBtn.MouseEnter:Connect(function()
 			if ActivePage ~= pageIndex then
 				Tween(TabBtn, {BackgroundTransparency = 0.7, BackgroundColor3 = Config.BG3}, TI_Fast)
@@ -769,7 +626,6 @@ function UILibrary.Load(GUITitle, options)
 			end
 		end)
 
-		-- ── Content page
 		local Page = NewScrollFrame("Page_"..PageTitle, ContentArea)
 		Page.Visible = (pageIndex == 0)
 		Page.Size = UDim2.new(1, 0, 1, 0)
@@ -787,11 +643,9 @@ function UILibrary.Load(GUITitle, options)
 			ActivePage = 0
 		end
 
-		-- switch to this tab
 		local function SelectTab()
 			ActivePage = pageIndex
 
-			-- hide all pages, show this one
 			for _, child in ipairs(ContentArea:GetChildren()) do
 				if child:IsA("ScrollingFrame") then
 					if child == Page then
@@ -804,7 +658,6 @@ function UILibrary.Load(GUITitle, options)
 				end
 			end
 
-			-- update sidebar tab styles
 			for _, child in ipairs(SidebarScroll:GetChildren()) do
 				if child:IsA("TextButton") then
 					local isActive = (child == TabBtn)
@@ -819,7 +672,6 @@ function UILibrary.Load(GUITitle, options)
 				end
 			end
 
-			-- slide indicator
 			local absPos = TabBtn.AbsolutePosition.Y - Sidebar.AbsolutePosition.Y + SidebarScroll.CanvasPosition.Y
 			Tween(PageIndicator, {
 				Position = UDim2.new(0, 0, 0, absPos + 4),
@@ -836,7 +688,6 @@ function UILibrary.Load(GUITitle, options)
 			SelectTab()
 		end
 
-		-- ── Page Library (elements)
 		local PageLibrary = {}
 		local ElementOrder = 0
 
@@ -845,7 +696,6 @@ function UILibrary.Load(GUITitle, options)
 			return ElementOrder
 		end
 
-		-- ── SEPARATOR / SECTION LABEL
 		function PageLibrary.AddSection(text)
 			local container = NewFrame(text.."_Section", Page)
 			container.Size = UDim2.new(1, 0, 0, 20)
@@ -879,7 +729,6 @@ function UILibrary.Load(GUITitle, options)
 			lbl.Parent = container
 		end
 
-		-- ── BUTTON
 		function PageLibrary.AddButton(text, callback, tooltip)
 			local container = Instance.new("Frame")
 			container.Name = text.."_Button"
@@ -911,7 +760,6 @@ function UILibrary.Load(GUITitle, options)
 			btn.AutoButtonColor = false
 			btn.Parent = bg
 
-			-- right arrow hint
 			local arrow = Instance.new("TextLabel")
 			arrow.Text = "›"
 			arrow.Font = Config.Font
@@ -936,11 +784,47 @@ function UILibrary.Load(GUITitle, options)
 			end)
 
 			if tooltip then
-				AddTooltip(btn, tooltip, ScreenGui)
+				local tip = Instance.new("Frame")
+				tip.BackgroundColor3 = Config.BG4
+				tip.BorderSizePixel = 0
+				tip.Size = UDim2.new(0, 0, 0, 22)
+				tip.ZIndex = 200
+				tip.Visible = false
+				NewCorner(6, tip)
+				NewStroke(Config.Border, 1, tip)
+				tip.Parent = ScreenGui
+
+				local tipLbl = Instance.new("TextLabel")
+				tipLbl.Text = tooltip
+				tipLbl.Font = Config.FontLight
+				tipLbl.TextColor3 = Config.TextPrimary
+				tipLbl.TextSize = 11
+				tipLbl.BackgroundTransparency = 1
+				tipLbl.Size = UDim2.new(1, -10, 1, 0)
+				tipLbl.Position = UDim2.new(0, 5, 0, 0)
+				tipLbl.ZIndex = 201
+				tipLbl.Parent = tip
+
+				local textSize = TextService:GetTextSize(tooltip, 11, Config.FontLight, Vector2.new(1000, 22))
+				tip.Size = UDim2.new(0, textSize.X + 14, 0, 22)
+
+				btn.MouseEnter:Connect(function()
+					tip.Visible = true
+					tip.BackgroundTransparency = 1
+					Tween(tip, {BackgroundTransparency = 0}, TI_Fast)
+				end)
+				btn.MouseLeave:Connect(function()
+					tip.Visible = false
+				end)
+
+				RunService.RenderStepped:Connect(function()
+					if tip.Visible then
+						tip.Position = UDim2.new(0, Mouse.X + 12, 0, Mouse.Y - 28)
+					end
+				end)
 			end
 		end
 
-		-- ── LABEL
 		function PageLibrary.AddLabel(text)
 			local container = Instance.new("Frame")
 			container.Name = text.."_Label"
@@ -983,7 +867,6 @@ function UILibrary.Load(GUITitle, options)
 			return lbl
 		end
 
-		-- ── TOGGLE
 		function PageLibrary.AddToggle(text, default, callback, tooltip)
 			local state = default or false
 
@@ -1017,7 +900,6 @@ function UILibrary.Load(GUITitle, options)
 			lbl.ZIndex = Level + 2
 			lbl.Parent = bg
 
-			-- pill track
 			local track = Instance.new("Frame")
 			track.Size = UDim2.new(0, 32, 0, 16)
 			track.Position = UDim2.new(1, -40, 0.5, -8)
@@ -1027,7 +909,6 @@ function UILibrary.Load(GUITitle, options)
 			NewCorner(999, track)
 			track.Parent = bg
 
-			-- pill knob
 			local knob = Instance.new("Frame")
 			knob.Size = UDim2.new(0, 12, 0, 12)
 			knob.Position = state and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
@@ -1057,9 +938,47 @@ function UILibrary.Load(GUITitle, options)
 			end)
 
 			AddHoverGlow(btn, bg, Config.BG4, Config.BG3)
-			if tooltip then AddTooltip(btn, tooltip, ScreenGui) end
+			if tooltip then
+				local tip = Instance.new("Frame")
+				tip.BackgroundColor3 = Config.BG4
+				tip.BorderSizePixel = 0
+				tip.Size = UDim2.new(0, 0, 0, 22)
+				tip.ZIndex = 200
+				tip.Visible = false
+				NewCorner(6, tip)
+				NewStroke(Config.Border, 1, tip)
+				tip.Parent = ScreenGui
 
-			-- expose set function
+				local tipLbl = Instance.new("TextLabel")
+				tipLbl.Text = tooltip
+				tipLbl.Font = Config.FontLight
+				tipLbl.TextColor3 = Config.TextPrimary
+				tipLbl.TextSize = 11
+				tipLbl.BackgroundTransparency = 1
+				tipLbl.Size = UDim2.new(1, -10, 1, 0)
+				tipLbl.Position = UDim2.new(0, 5, 0, 0)
+				tipLbl.ZIndex = 201
+				tipLbl.Parent = tip
+
+				local textSize = TextService:GetTextSize(tooltip, 11, Config.FontLight, Vector2.new(1000, 22))
+				tip.Size = UDim2.new(0, textSize.X + 14, 0, 22)
+
+				btn.MouseEnter:Connect(function()
+					tip.Visible = true
+					tip.BackgroundTransparency = 1
+					Tween(tip, {BackgroundTransparency = 0}, TI_Fast)
+				end)
+				btn.MouseLeave:Connect(function()
+					tip.Visible = false
+				end)
+
+				RunService.RenderStepped:Connect(function()
+					if tip.Visible then
+						tip.Position = UDim2.new(0, Mouse.X + 12, 0, Mouse.Y - 28)
+					end
+				end)
+			end
+
 			local toggleObj = {
 				Set = function(_, val)
 					state = val
@@ -1072,7 +991,6 @@ function UILibrary.Load(GUITitle, options)
 			return toggleObj
 		end
 
-		-- ── SLIDER
 		function PageLibrary.AddSlider(text, config, callback, tooltip)
 			local cfg = config or {}
 			local minVal = cfg.Min or cfg.min or 0
@@ -1127,7 +1045,6 @@ function UILibrary.Load(GUITitle, options)
 			valLbl.ZIndex = Level + 2
 			valLbl.Parent = bg
 
-			-- track
 			local track = Instance.new("Frame")
 			track.Size = UDim2.new(1, -20, 0, 4)
 			track.Position = UDim2.new(0, 10, 1, -10)
@@ -1137,7 +1054,6 @@ function UILibrary.Load(GUITitle, options)
 			NewCorner(999, track)
 			track.Parent = bg
 
-			-- fill
 			local defaultScale = (defVal - minVal) / (maxVal - minVal)
 			local fill = Instance.new("Frame")
 			fill.Size = UDim2.new(defaultScale, 0, 1, 0)
@@ -1147,7 +1063,6 @@ function UILibrary.Load(GUITitle, options)
 			NewCorner(999, fill)
 			fill.Parent = track
 
-			-- knob
 			local knob = Instance.new("Frame")
 			knob.Size = UDim2.new(0, 12, 0, 12)
 			knob.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -1186,7 +1101,9 @@ function UILibrary.Load(GUITitle, options)
 				   input.UserInputType == Enum.UserInputType.Touch then
 					sliding = true
 					Tween(knob, {Size = UDim2.new(0, 16, 0, 16)}, TI_Fast)
-					local _, _, xs, _ = GetXY(track)
+					local absPos = track.AbsolutePosition
+					local mousePos = UserInputService:GetMouseLocation()
+					local xs = (mousePos.X - absPos.X) / track.AbsoluteSize.X
 					updateSlider(xs)
 				end
 			end)
@@ -1195,7 +1112,9 @@ function UILibrary.Load(GUITitle, options)
 				if sliding then
 					if input.UserInputType == Enum.UserInputType.MouseMovement or
 					   input.UserInputType == Enum.UserInputType.Touch then
-						local _, _, xs, _ = GetXY(track)
+						local absPos = track.AbsolutePosition
+						local mousePos = UserInputService:GetMouseLocation()
+						local xs = (mousePos.X - absPos.X) / track.AbsoluteSize.X
 						updateSlider(xs)
 					end
 				end
@@ -1212,7 +1131,46 @@ function UILibrary.Load(GUITitle, options)
 			end)
 
 			AddHoverGlow(sliderBtn, bg, Config.BG4, Config.BG3)
-			if tooltip then AddTooltip(sliderBtn, tooltip, ScreenGui) end
+			if tooltip then
+				local tip = Instance.new("Frame")
+				tip.BackgroundColor3 = Config.BG4
+				tip.BorderSizePixel = 0
+				tip.Size = UDim2.new(0, 0, 0, 22)
+				tip.ZIndex = 200
+				tip.Visible = false
+				NewCorner(6, tip)
+				NewStroke(Config.Border, 1, tip)
+				tip.Parent = ScreenGui
+
+				local tipLbl = Instance.new("TextLabel")
+				tipLbl.Text = tooltip
+				tipLbl.Font = Config.FontLight
+				tipLbl.TextColor3 = Config.TextPrimary
+				tipLbl.TextSize = 11
+				tipLbl.BackgroundTransparency = 1
+				tipLbl.Size = UDim2.new(1, -10, 1, 0)
+				tipLbl.Position = UDim2.new(0, 5, 0, 0)
+				tipLbl.ZIndex = 201
+				tipLbl.Parent = tip
+
+				local textSize = TextService:GetTextSize(tooltip, 11, Config.FontLight, Vector2.new(1000, 22))
+				tip.Size = UDim2.new(0, textSize.X + 14, 0, 22)
+
+				sliderBtn.MouseEnter:Connect(function()
+					tip.Visible = true
+					tip.BackgroundTransparency = 1
+					Tween(tip, {BackgroundTransparency = 0}, TI_Fast)
+				end)
+				sliderBtn.MouseLeave:Connect(function()
+					tip.Visible = false
+				end)
+
+				RunService.RenderStepped:Connect(function()
+					if tip.Visible then
+						tip.Position = UDim2.new(0, Mouse.X + 12, 0, Mouse.Y - 28)
+					end
+				end)
+			end
 
 			return {
 				Set = function(_, val)
@@ -1223,7 +1181,6 @@ function UILibrary.Load(GUITitle, options)
 			}
 		end
 
-		-- ── DROPDOWN
 		function PageLibrary.AddDropdown(text, options, callback, default, tooltip)
 			local opts = options or {}
 			local selected = default or (opts[1] or "")
@@ -1273,7 +1230,6 @@ function UILibrary.Load(GUITitle, options)
 			selLbl.ZIndex = Level + 2
 			selLbl.Parent = bg
 
-			-- chevron
 			local chevron = Instance.new("TextLabel")
 			chevron.Text = "›"
 			chevron.Font = Config.Font
@@ -1286,7 +1242,6 @@ function UILibrary.Load(GUITitle, options)
 			chevron.ZIndex = Level + 2
 			chevron.Parent = bg
 
-			-- options frame
 			local optFrame = Instance.new("Frame")
 			optFrame.Size = UDim2.new(1, 0, 0, #opts * Config.ElementH)
 			optFrame.Position = UDim2.new(0, 0, 0, Config.ElementH)
@@ -1349,7 +1304,46 @@ function UILibrary.Load(GUITitle, options)
 			end)
 
 			AddHoverGlow(headerBtn, bg, Config.BG4, Config.BG3)
-			if tooltip then AddTooltip(headerBtn, tooltip, ScreenGui) end
+			if tooltip then
+				local tip = Instance.new("Frame")
+				tip.BackgroundColor3 = Config.BG4
+				tip.BorderSizePixel = 0
+				tip.Size = UDim2.new(0, 0, 0, 22)
+				tip.ZIndex = 200
+				tip.Visible = false
+				NewCorner(6, tip)
+				NewStroke(Config.Border, 1, tip)
+				tip.Parent = ScreenGui
+
+				local tipLbl = Instance.new("TextLabel")
+				tipLbl.Text = tooltip
+				tipLbl.Font = Config.FontLight
+				tipLbl.TextColor3 = Config.TextPrimary
+				tipLbl.TextSize = 11
+				tipLbl.BackgroundTransparency = 1
+				tipLbl.Size = UDim2.new(1, -10, 1, 0)
+				tipLbl.Position = UDim2.new(0, 5, 0, 0)
+				tipLbl.ZIndex = 201
+				tipLbl.Parent = tip
+
+				local textSize = TextService:GetTextSize(tooltip, 11, Config.FontLight, Vector2.new(1000, 22))
+				tip.Size = UDim2.new(0, textSize.X + 14, 0, 22)
+
+				headerBtn.MouseEnter:Connect(function()
+					tip.Visible = true
+					tip.BackgroundTransparency = 1
+					Tween(tip, {BackgroundTransparency = 0}, TI_Fast)
+				end)
+				headerBtn.MouseLeave:Connect(function()
+					tip.Visible = false
+				end)
+
+				RunService.RenderStepped:Connect(function()
+					if tip.Visible then
+						tip.Position = UDim2.new(0, Mouse.X + 12, 0, Mouse.Y - 28)
+					end
+				end)
+			end
 
 			return {
 				Set = function(_, val)
@@ -1358,7 +1352,6 @@ function UILibrary.Load(GUITitle, options)
 				end,
 				Get = function() return selected end,
 				Refresh = function(_, newOpts)
-					-- rebuild options
 					for _, ch in ipairs(optFrame:GetChildren()) do
 						if ch:IsA("TextButton") then ch:Destroy() end
 					end
@@ -1391,7 +1384,6 @@ function UILibrary.Load(GUITitle, options)
 			}
 		end
 
-		-- ── TEXT INPUT
 		function PageLibrary.AddTextInput(text, placeholder, callback, tooltip)
 			local container = Instance.new("Frame")
 			container.Name = text.."_TextInput"
@@ -1448,7 +1440,46 @@ function UILibrary.Load(GUITitle, options)
 				end
 			end)
 
-			if tooltip then AddTooltip(box, tooltip, ScreenGui) end
+			if tooltip then
+				local tip = Instance.new("Frame")
+				tip.BackgroundColor3 = Config.BG4
+				tip.BorderSizePixel = 0
+				tip.Size = UDim2.new(0, 0, 0, 22)
+				tip.ZIndex = 200
+				tip.Visible = false
+				NewCorner(6, tip)
+				NewStroke(Config.Border, 1, tip)
+				tip.Parent = ScreenGui
+
+				local tipLbl = Instance.new("TextLabel")
+				tipLbl.Text = tooltip
+				tipLbl.Font = Config.FontLight
+				tipLbl.TextColor3 = Config.TextPrimary
+				tipLbl.TextSize = 11
+				tipLbl.BackgroundTransparency = 1
+				tipLbl.Size = UDim2.new(1, -10, 1, 0)
+				tipLbl.Position = UDim2.new(0, 5, 0, 0)
+				tipLbl.ZIndex = 201
+				tipLbl.Parent = tip
+
+				local textSize = TextService:GetTextSize(tooltip, 11, Config.FontLight, Vector2.new(1000, 22))
+				tip.Size = UDim2.new(0, textSize.X + 14, 0, 22)
+
+				box.MouseEnter:Connect(function()
+					tip.Visible = true
+					tip.BackgroundTransparency = 1
+					Tween(tip, {BackgroundTransparency = 0}, TI_Fast)
+				end)
+				box.MouseLeave:Connect(function()
+					tip.Visible = false
+				end)
+
+				RunService.RenderStepped:Connect(function()
+					if tip.Visible then
+						tip.Position = UDim2.new(0, Mouse.X + 12, 0, Mouse.Y - 28)
+					end
+				end)
+			end
 
 			return {
 				Set = function(_, val) box.Text = val end,
@@ -1456,7 +1487,6 @@ function UILibrary.Load(GUITitle, options)
 			}
 		end
 
-		-- ── KEYBIND
 		function PageLibrary.AddKeybind(text, default, callback, tooltip)
 			local key = default or Enum.KeyCode.Unknown
 			local listening = false
@@ -1536,14 +1566,52 @@ function UILibrary.Load(GUITitle, options)
 			end)
 
 			AddHoverGlow(keyBtn, keyPill, Config.BG3, Config.BG4)
-			if tooltip then AddTooltip(keyBtn, tooltip, ScreenGui) end
+			if tooltip then
+				local tip = Instance.new("Frame")
+				tip.BackgroundColor3 = Config.BG4
+				tip.BorderSizePixel = 0
+				tip.Size = UDim2.new(0, 0, 0, 22)
+				tip.ZIndex = 200
+				tip.Visible = false
+				NewCorner(6, tip)
+				NewStroke(Config.Border, 1, tip)
+				tip.Parent = ScreenGui
+
+				local tipLbl = Instance.new("TextLabel")
+				tipLbl.Text = tooltip
+				tipLbl.Font = Config.FontLight
+				tipLbl.TextColor3 = Config.TextPrimary
+				tipLbl.TextSize = 11
+				tipLbl.BackgroundTransparency = 1
+				tipLbl.Size = UDim2.new(1, -10, 1, 0)
+				tipLbl.Position = UDim2.new(0, 5, 0, 0)
+				tipLbl.ZIndex = 201
+				tipLbl.Parent = tip
+
+				local textSize = TextService:GetTextSize(tooltip, 11, Config.FontLight, Vector2.new(1000, 22))
+				tip.Size = UDim2.new(0, textSize.X + 14, 0, 22)
+
+				keyBtn.MouseEnter:Connect(function()
+					tip.Visible = true
+					tip.BackgroundTransparency = 1
+					Tween(tip, {BackgroundTransparency = 0}, TI_Fast)
+				end)
+				keyBtn.MouseLeave:Connect(function()
+					tip.Visible = false
+				end)
+
+				RunService.RenderStepped:Connect(function()
+					if tip.Visible then
+						tip.Position = UDim2.new(0, Mouse.X + 12, 0, Mouse.Y - 28)
+					end
+				end)
+			end
 
 			return {
 				Get = function() return key end
 			}
 		end
 
-		-- ── COLOUR PICKER
 		function PageLibrary.AddColorPicker(text, default, callback, tooltip)
 			local col = default or Color3.fromRGB(255, 255, 255)
 			if type(default) == "table" then
@@ -1602,7 +1670,6 @@ function UILibrary.Load(GUITitle, options)
 
 			local expandH = Config.ElementH + 78
 
-			-- RGB sliders inside
 			local colorFrame = Instance.new("Frame")
 			colorFrame.Size = UDim2.new(1, 0, 0, 78)
 			colorFrame.Position = UDim2.new(0, 0, 0, Config.ElementH)
@@ -1674,7 +1741,10 @@ function UILibrary.Load(GUITitle, options)
 					if input.UserInputType == Enum.UserInputType.MouseButton1 or
 					   input.UserInputType == Enum.UserInputType.Touch then
 						sliding = true
-						local _, _, xs, _ = GetXY(track)
+						local absPos = track.AbsolutePosition
+						local mousePos = UserInputService:GetMouseLocation()
+						local xs = (mousePos.X - absPos.X) / track.AbsoluteSize.X
+						xs = math.clamp(xs, 0, 1)
 						currentVal = math.floor(xs * 255)
 						fill.Size = UDim2.new(xs, 0, 1, 0)
 						valDisplay.Text = tostring(currentVal)
@@ -1685,7 +1755,9 @@ function UILibrary.Load(GUITitle, options)
 					if sliding then
 						if input.UserInputType == Enum.UserInputType.MouseMovement or
 						   input.UserInputType == Enum.UserInputType.Touch then
-							local _, _, xs, _ = GetXY(track)
+							local absPos = track.AbsolutePosition
+							local mousePos = UserInputService:GetMouseLocation()
+							local xs = (mousePos.X - absPos.X) / track.AbsoluteSize.X
 							xs = math.clamp(xs, 0, 1)
 							currentVal = math.floor(xs * 255)
 							fill.Size = UDim2.new(xs, 0, 1, 0)
@@ -1722,7 +1794,46 @@ function UILibrary.Load(GUITitle, options)
 			end)
 
 			AddHoverGlow(previewBtn, bg, Config.BG4, Config.BG3)
-			if tooltip then AddTooltip(previewBtn, tooltip, ScreenGui) end
+			if tooltip then
+				local tip = Instance.new("Frame")
+				tip.BackgroundColor3 = Config.BG4
+				tip.BorderSizePixel = 0
+				tip.Size = UDim2.new(0, 0, 0, 22)
+				tip.ZIndex = 200
+				tip.Visible = false
+				NewCorner(6, tip)
+				NewStroke(Config.Border, 1, tip)
+				tip.Parent = ScreenGui
+
+				local tipLbl = Instance.new("TextLabel")
+				tipLbl.Text = tooltip
+				tipLbl.Font = Config.FontLight
+				tipLbl.TextColor3 = Config.TextPrimary
+				tipLbl.TextSize = 11
+				tipLbl.BackgroundTransparency = 1
+				tipLbl.Size = UDim2.new(1, -10, 1, 0)
+				tipLbl.Position = UDim2.new(0, 5, 0, 0)
+				tipLbl.ZIndex = 201
+				tipLbl.Parent = tip
+
+				local textSize = TextService:GetTextSize(tooltip, 11, Config.FontLight, Vector2.new(1000, 22))
+				tip.Size = UDim2.new(0, textSize.X + 14, 0, 22)
+
+				previewBtn.MouseEnter:Connect(function()
+					tip.Visible = true
+					tip.BackgroundTransparency = 1
+					Tween(tip, {BackgroundTransparency = 0}, TI_Fast)
+				end)
+				previewBtn.MouseLeave:Connect(function()
+					tip.Visible = false
+				end)
+
+				RunService.RenderStepped:Connect(function()
+					if tip.Visible then
+						tip.Position = UDim2.new(0, Mouse.X + 12, 0, Mouse.Y - 28)
+					end
+				end)
+			end
 
 			return {
 				Get = function() return col end,
@@ -1733,7 +1844,6 @@ function UILibrary.Load(GUITitle, options)
 			}
 		end
 
-		-- ── SEARCH BAR (auto-added at top of each page)
 		do
 			local searchContainer = Instance.new("Frame")
 			searchContainer.Name = "SearchBar"
@@ -1802,10 +1912,8 @@ function UILibrary.Load(GUITitle, options)
 		return PageLibrary
 	end
 
-	-- expose Notify
 	TabLibrary.Notify = Notify
 
-	-- open animation
 	ContainerFrame.Size = UDim2.new(0, Config.WindowW * 0.8, 0, Config.WindowH * 0.8)
 	ContainerFrame.Position = UDim2.new(0.5, -(Config.WindowW * 0.8) / 2, 0.5, -(Config.WindowH * 0.8) / 2)
 	MainFrame.BackgroundTransparency = 1
@@ -1815,56 +1923,36 @@ function UILibrary.Load(GUITitle, options)
 	}, TI_Back)
 	Tween(MainFrame, {BackgroundTransparency = 0}, TI_Normal)
 
+	do
+		local bottomBar = MainFrame:FindFirstChild("Body", true):FindFirstChild("Sidebar", true).Parent.Parent:FindFirstChild("Body", true):FindFirstChild("Sidebar", true).Parent:FindFirstChild("Stuff", true)
+		if bottomBar then
+			local avatarFrame = bottomBar:FindFirstChild("Frame", true)
+			if avatarFrame then
+				local profileContainer = avatarFrame.Parent
+				local displayNameLabel = Instance.new("TextLabel")
+				displayNameLabel.Name = "DisplayNameLabel"
+				displayNameLabel.Font = Config.Font
+				displayNameLabel.TextColor3 = Config.TextPrimary
+				displayNameLabel.TextSize = 13
+				displayNameLabel.BackgroundTransparency = 1
+				displayNameLabel.Size = UDim2.new(1, -60, 0, 16)
+				displayNameLabel.Position = UDim2.new(0, 50, 0, 8)
+				displayNameLabel.TextXAlignment = Enum.TextXAlignment.Left
+				displayNameLabel.Text = Player.DisplayName
+				displayNameLabel.ZIndex = 10
+				displayNameLabel.Parent = bottomBar
+
+				local usernameLabel = bottomBar:FindFirstChild("TextLabel", true)
+				if usernameLabel and usernameLabel.Text == "" then
+					usernameLabel.Text = "@"..Player.Name
+					usernameLabel.Position = UDim2.new(0, 50, 0, 26)
+					usernameLabel.TextSize = 11
+				end
+			end
+		end
+	end
+
 	return TabLibrary
 end
 
 return UILibrary
-
-
--- ═══════════════════════════════════════════
--- USAGE EXAMPLE:
--- ═══════════════════════════════════════════
---[[
-local UI = require(script.UILibrary_Enhanced)
-
-local Window = UI.Load("My Script", {
-	AccentColor = Color3.fromRGB(120, 90, 255)
-})
-
-local MainTab = Window.AddPage("Main")
-MainTab.AddSection("General")
-MainTab.AddButton("Say Hello", function()
-	print("Hello!")
-	Window.Notify("Success", "Button clicked!", "success")
-end, "Click me to print hello")
-
-MainTab.AddToggle("ESP", false, function(val)
-	print("ESP:", val)
-end)
-
-local slider = MainTab.AddSlider("Walk Speed", {Min=16, Max=100, Default=16, Suffix=" stud/s"}, function(val)
-	game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = val
-end)
-
-local dropdown = MainTab.AddDropdown("Team", {"Red", "Blue", "Green"}, function(val)
-	print("Team:", val)
-end)
-
-MainTab.AddColorPicker("Name Colour", Color3.fromRGB(255,100,100), function(col)
-	print(col)
-end)
-
-MainTab.AddTextInput("Username", "Enter name...", function(val)
-	print("Username:", val)
-end)
-
-MainTab.AddKeybind("Toggle GUI", Enum.KeyCode.RightShift, function(key)
-	print("Keybind set to:", key.Name)
-end)
-
-local SettingsTab = Window.AddPage("Settings")
-SettingsTab.AddSection("Performance")
-SettingsTab.AddToggle("FPS Boost", false, function(val)
-	print("FPS Boost:", val)
-end)
-]]
